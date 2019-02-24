@@ -78,7 +78,9 @@ func Postgres() *gorm.DB {
 		db.LogMode(true)
 	}
 
-	logrus.Info("√ postgres connected")
+	db.SingularTable(true)
+
+	logrus.Info("postgres connection √")
 
 	return db
 }
