@@ -12,7 +12,7 @@ type Repository struct {
 
 // DB ...
 type DB interface {
-	GetAll(accountID string, opts gModels.QueryOpts) (*[]models.Bin, error)
+	GetAll(accountID string, opts *gModels.QueryOpts) ([]*models.Bin, error)
 	Get(accountID string, ID string) (*models.Bin, error)
 	Create(bin *models.Bin) (string, error)
 	Update(accountID string, ID string, bin *models.Bin) error

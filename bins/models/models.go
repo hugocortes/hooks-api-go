@@ -10,3 +10,8 @@ type Bin struct {
 	CreatedAt *time.Time
 	UpdatedAt *time.Time
 }
+
+// Initialized validates if Bin is intialized
+func (m *Bin) Initialized() bool {
+	return m.ID != "" && m.CreatedAt != nil && m.UpdatedAt != nil
+}
