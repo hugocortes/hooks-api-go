@@ -34,6 +34,7 @@ func TestPostgres(t *testing.T) {
 
 	t.Run("ShouldGetNoBins", ShouldGetNoBins)
 	t.Run("ShouldCreateBin", ShouldCreateBin)
+	t.Run("ShouldUpdateBin", ShouldUpdateBin)
 	t.Run("ShouldGetBin", ShouldGetBin)
 	t.Run("ShouldDeleteBin", ShouldDeleteBin)
 	t.Run("ShouldDestroyBins", ShouldDestroyBins)
@@ -65,6 +66,19 @@ func ShouldCreateBin(t *testing.T) {
 	binID, err := testPostgres.Create(bin)
 	assert.Nil(t, err)
 	assert.NotNil(t, binID, "BinID was not returned")
+
+	testPostgres.Destroy(accountID)
+}
+
+func ShouldUpdateBin(t *testing.T) {
+	accountID := uuid.New().String()
+	createdBin := testCreateBin(accountID)
+
+	createdBin.Title = "Updated Name"
+	testPostgres.Update(accountID, createdBin.ID, createdBin)
+	bin, err := testPostgres.Get(accountID, createdBin.ID)
+	assert.Nil(t, err)
+	assert.Equal(t, createdBin.Title, bin.Title)
 
 	testPostgres.Destroy(accountID)
 }
