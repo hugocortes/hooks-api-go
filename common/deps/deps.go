@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" // Postgres
@@ -21,7 +22,8 @@ func LoadEnv() {
 }
 
 // ConfigureLog configures the logger
-func ConfigureLog() {
+// Returns true if it's in developer env, otherwise prod
+func ConfigureLog() bool {
 	logrus.SetOutput(os.Stdout)
 	logrus.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp: true,
@@ -30,15 +32,30 @@ func ConfigureLog() {
 	switch os.Getenv("LOG_LEVEL") {
 	case "trace":
 		logrus.SetLevel(logrus.TraceLevel)
+		return true
 	case "debug":
 		logrus.SetLevel(logrus.DebugLevel)
+		return true
 	case "info":
 		logrus.SetLevel(logrus.InfoLevel)
+		return false
 	case "warn":
 		logrus.SetLevel(logrus.WarnLevel)
+		return false
 	default:
 		logrus.SetLevel(logrus.ErrorLevel)
+		return false
 	}
+}
+
+// Router creates the default gin router
+func Router() *gin.Engine {
+	gin.SetMode("release")
+	if ConfigureLog() {
+		gin.SetMode("debug")
+	}
+
+	return gin.Default()
 }
 
 // Redis returns a redis connection
@@ -54,6 +71,8 @@ func Redis() *redis.Client {
 	}
 
 	redis := redis.NewClient(options)
+
+	logrus.Info("redis connection √")
 
 	return redis
 }
