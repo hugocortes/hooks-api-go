@@ -3,6 +3,7 @@ package db
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/hugocortes/hooks-api/bins/models"
@@ -39,6 +40,7 @@ func TestPostgres(t *testing.T) {
 	t.Run("ShouldDeleteBin", ShouldDeleteBin)
 	t.Run("ShouldDestroyBins", ShouldDestroyBins)
 	t.Run("ShouldGetAllBins", ShouldGetAllBins)
+	t.Run("ShouldGetErrors", ShouldGetErrors)
 }
 
 func ShouldGetNoBins(t *testing.T) {
@@ -74,11 +76,14 @@ func ShouldUpdateBin(t *testing.T) {
 	accountID := uuid.New().String()
 	createdBin := testCreateBin(accountID)
 
+	time.Sleep(2 * time.Second)
+
 	createdBin.Title = "Updated Name"
 	testPostgres.Update(accountID, createdBin.ID, createdBin)
 	bin, err := testPostgres.Get(accountID, createdBin.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, createdBin.Title, bin.Title)
+	assert.Equal(t, createdBin.CreatedAt.UTC(), *bin.CreatedAt)
 
 	testPostgres.Destroy(accountID)
 }
@@ -104,7 +109,7 @@ func ShouldDeleteBin(t *testing.T) {
 	assert.Nil(t, err)
 
 	bin, err := testPostgres.Get(accountID, createdBin.ID)
-	assert.Nil(t, err)
+	assert.NotNil(t, err, "Expected a not found error")
 	assert.Nil(t, bin)
 
 	testPostgres.Destroy(accountID)
@@ -122,7 +127,7 @@ func ShouldDestroyBins(t *testing.T) {
 	testPostgres.Destroy(accountID)
 	for i := 0; i < 10; i++ {
 		bin, err := testPostgres.Get(accountID, bins[i].ID)
-		assert.Nil(t, err)
+		assert.NotNil(t, err, "Expected not found error")
 		assert.Nil(t, bin)
 	}
 }
@@ -155,6 +160,27 @@ func ShouldGetAllBins(t *testing.T) {
 	assert.Equal(t, 5, len(bins))
 
 	testPostgres.Destroy(accountID)
+}
+
+func ShouldGetErrors(t *testing.T) {
+	binID := uuid.New().String()
+	accountID := uuid.New().String()
+
+	var bin *models.Bin
+	var err error
+
+	bin, err = testPostgres.Get(accountID, binID)
+	assert.NotNil(t, err, "Expected an error")
+	assert.Nil(t, bin, "Expected nil")
+
+	err = testPostgres.Update(accountID, binID, &models.Bin{})
+	assert.NotNil(t, err, "Expected an error")
+
+	err = testPostgres.Delete(accountID, binID)
+	assert.NotNil(t, err, "Expected an error")
+
+	err = testPostgres.Destroy(accountID)
+	assert.NotNil(t, err, "Expected an error")
 }
 
 func testCreateBin(accountID string) *models.Bin {
