@@ -13,11 +13,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// LoadEnv loads all env variables
-func LoadEnv() {
-	err := godotenv.Load()
+// LoadEnv loads all env variables from .env file relative to the source of execution.
+// If no .env file is provided, .env will be loaded from deps.go directory.
+func LoadEnv(file ...string) {
+	err := godotenv.Load(file...)
 	if err != nil {
-		log.Fatal("did not load from .env")
+		log.Fatalf("did not load from .env, %s , %s", file, err.Error())
 	}
 }
 
