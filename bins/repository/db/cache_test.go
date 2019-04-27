@@ -82,3 +82,36 @@ func TestCachedGet(t *testing.T) {
 
 	assert.True(t, rawQueryCount == 2, "Query was called more than once")
 }
+
+func TestCacheInvalidation(t *testing.T) {
+	testCacheSetup()
+	defer testCacheTearDown()
+
+	bin := mockBins[0]
+
+	var rawQueryCount = 0
+	var updated = false
+	mockDB.On("Get", accountID, bin.ID).Return(&bin, nil).Run(func(args mock.Arguments) {
+		rawQueryCount++
+	})
+	mockDB.On("Update", accountID, bin.ID, &bin).Return(nil).Run(func(args mock.Arguments) {
+		updated = true
+	})
+
+	// raw query, rawQueryCount incremented
+	testCache.Get(bin.AccountID, bin.ID)
+
+	// cached response
+	testCache.Get(bin.AccountID, bin.ID)
+	testCache.Get(bin.AccountID, bin.ID)
+
+	// cache invalidate
+	bin.Title = fake.ProductName()
+	testCache.Update(bin.AccountID, bin.ID, &bin)
+
+	// raw query, rawQueryCount incremented
+	testCache.Get(bin.AccountID, bin.ID)
+
+	assert.True(t, updated, "Updated was not mocked")
+	assert.True(t, rawQueryCount == 2, "Query was called more than once")
+}
