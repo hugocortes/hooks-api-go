@@ -8,7 +8,7 @@ import (
 // New configures the database infrastructure
 func New(postgres *gorm.DB, redis *redis.Client) *CacheRepo {
 	return &CacheRepo{
-		db:    &PostgresRepo{db: postgres},
-		cache: redis,
+		DB:    &PostgresRepo{DB: postgres},
+		Cache: redis,
 	}
 }

@@ -13,19 +13,19 @@ import (
 
 // CacheRepo ..
 type CacheRepo struct {
-	db    bins.DB
-	cache *redis.Client
+	DB    bins.DB
+	Cache *redis.Client
 }
 
 // GetAll ...
 func (r *CacheRepo) GetAll(accountID string, opts *gModels.QueryOpts) ([]*models.Bin, error) {
-	return r.db.GetAll(accountID, opts)
+	return r.DB.GetAll(accountID, opts)
 }
 
 // Get ...
 func (r *CacheRepo) Get(accountID string, ID string) (*models.Bin, error) {
 	cacheKey := cache.GenKey("Get", accountID, ID)
-	cachedValue := r.cache.Get(cacheKey)
+	cachedValue := r.Cache.Get(cacheKey)
 	bin := &models.Bin{}
 
 	var err error
@@ -36,7 +36,7 @@ func (r *CacheRepo) Get(accountID string, ID string) (*models.Bin, error) {
 			return nil, err
 		}
 	} else {
-		bin, err = r.db.Get(accountID, ID)
+		bin, err = r.DB.Get(accountID, ID)
 		if err != nil {
 			return nil, err
 		}
@@ -47,7 +47,7 @@ func (r *CacheRepo) Get(accountID string, ID string) (*models.Bin, error) {
 			return nil, err
 		}
 
-		r.cache.Set(cacheKey, marshalled, cache.Expiration())
+		r.Cache.Set(cacheKey, marshalled, cache.Expiration())
 	}
 
 	return bin, err
@@ -55,24 +55,24 @@ func (r *CacheRepo) Get(accountID string, ID string) (*models.Bin, error) {
 
 // Create ...
 func (r *CacheRepo) Create(bin *models.Bin) (string, error) {
-	return r.db.Create(bin)
+	return r.DB.Create(bin)
 }
 
 // Update ...
 func (r *CacheRepo) Update(accountID string, ID string, bin *models.Bin) error {
-	r.cache.Del(cache.GenKey("Get", accountID, ID))
+	r.Cache.Del(cache.GenKey("Get", accountID, ID))
 
-	return r.db.Update(accountID, ID, bin)
+	return r.DB.Update(accountID, ID, bin)
 }
 
 // Delete ...
 func (r *CacheRepo) Delete(accountID string, ID string) error {
-	r.cache.Del(cache.GenKey("Get", accountID, ID))
+	r.Cache.Del(cache.GenKey("Get", accountID, ID))
 
-	return r.db.Delete(accountID, ID)
+	return r.DB.Delete(accountID, ID)
 }
 
 // Destroy ...
 func (r *CacheRepo) Destroy(accountID string) error {
-	return r.db.Destroy(accountID)
+	return r.DB.Destroy(accountID)
 }
