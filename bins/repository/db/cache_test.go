@@ -1,4 +1,4 @@
-package db
+package db_test
 
 import (
 	"os"
@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hugocortes/hooks-api/bins/mocks"
 	"github.com/hugocortes/hooks-api/bins/models"
+	binsDB "github.com/hugocortes/hooks-api/bins/repository/db"
 	"github.com/hugocortes/hooks-api/common/cache"
 	"github.com/hugocortes/hooks-api/common/deps"
 	"github.com/icrowley/fake"
@@ -20,21 +21,21 @@ const (
 )
 
 var testRedisClient *redis.Client
-var testCache *CacheRepo
+var testCache *binsDB.CacheRepo
 var mockDB *mocks.DB
 var mockBins []models.Bin
 var accountID string
 
-func TestCache(t *testing.T) {
-	deps.LoadEnv()
+func testCacheSetup() {
+	deps.LoadEnv("../../../.env")
 	testRedisClient = deps.Redis()
 
 	mockDB = new(mocks.DB)
 
 	os.Setenv("REDIS_KEY", testPrefix)
-	testCache = &CacheRepo{
-		cache: deps.Redis(),
-		db:    mockDB,
+	testCache = &binsDB.CacheRepo{
+		Cache: deps.Redis(),
+		DB:    mockDB,
 	}
 
 	accountID = uuid.New().String()
@@ -50,11 +51,16 @@ func TestCache(t *testing.T) {
 			AccountID: accountID,
 		},
 	}
-
-	t.Run("RedisShouldCacheIndividual", RedisShouldCacheIndividual)
 }
 
-func RedisShouldCacheIndividual(t *testing.T) {
+func testCacheTearDown() {
+	testCache.Cache.FlushAll()
+}
+
+func TestCachedGet(t *testing.T) {
+	testCacheSetup()
+	defer testCacheTearDown()
+
 	bin := mockBins[0]
 
 	var rawQueryCount = 0

@@ -1,4 +1,4 @@
-package db
+package db_test
 
 import (
 	"os"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hugocortes/hooks-api/bins/models"
+	binsDB "github.com/hugocortes/hooks-api/bins/repository/db"
 	"github.com/hugocortes/hooks-api/common/deps"
 	"github.com/hugocortes/hooks-api/migrations"
 	gModels "github.com/hugocortes/hooks-api/models"
@@ -16,34 +17,32 @@ import (
 )
 
 var db *gorm.DB
-var testPostgres = &PostgresRepo{}
+var testPostgres = &binsDB.PostgresRepo{}
+var originalDb string
 
-func TestPostgres(t *testing.T) {
-	deps.LoadEnv()
-
-	testDatabase := os.Getenv("POSTGRES_DB") + "-test"
+func testPostgresSetup() {
+	deps.LoadEnv("../../../.env")
+	originalDb = os.Getenv("POSTGRES_DB")
+	testDatabase := originalDb + "-test"
 	os.Setenv("POSTGRES_DB", testDatabase)
 
 	db = deps.Postgres()
-	testPostgres = &PostgresRepo{
-		db: db,
+	testPostgres = &binsDB.PostgresRepo{
+		DB: db,
 	}
 
 	migrations.Run(db)
-
-	defer db.Close()
-
-	t.Run("ShouldGetNoBins", ShouldGetNoBins)
-	t.Run("ShouldCreateBin", ShouldCreateBin)
-	t.Run("ShouldUpdateBin", ShouldUpdateBin)
-	t.Run("ShouldGetBin", ShouldGetBin)
-	t.Run("ShouldDeleteBin", ShouldDeleteBin)
-	t.Run("ShouldDestroyBins", ShouldDestroyBins)
-	t.Run("ShouldGetAllBins", ShouldGetAllBins)
-	t.Run("ShouldGetErrors", ShouldGetErrors)
 }
 
-func ShouldGetNoBins(t *testing.T) {
+func testPostgresTearDown() {
+	os.Setenv("POSTGRES_DB", originalDb)
+	db.Close()
+}
+
+func TestGetNoBins(t *testing.T) {
+	testPostgresSetup()
+	defer testPostgresTearDown()
+
 	accountID := uuid.New().String()
 	opts := &gModels.QueryOpts{
 		Page:  0,
@@ -57,7 +56,10 @@ func ShouldGetNoBins(t *testing.T) {
 	testPostgres.Destroy(accountID)
 }
 
-func ShouldCreateBin(t *testing.T) {
+func TestCreateBin(t *testing.T) {
+	testPostgresSetup()
+	defer testPostgresTearDown()
+
 	accountID := uuid.New().String()
 	title := fake.ProductName()
 	bin := &models.Bin{
@@ -72,9 +74,13 @@ func ShouldCreateBin(t *testing.T) {
 	testPostgres.Destroy(accountID)
 }
 
-func ShouldUpdateBin(t *testing.T) {
+func TestUpdateBin(t *testing.T) {
+	testPostgresSetup()
+	defer testPostgresTearDown()
+
 	accountID := uuid.New().String()
 	createdBin := testCreateBin(accountID)
+	updatedTs := createdBin.UpdatedAt
 
 	time.Sleep(2 * time.Second)
 
@@ -83,12 +89,16 @@ func ShouldUpdateBin(t *testing.T) {
 	bin, err := testPostgres.Get(accountID, createdBin.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, createdBin.Title, bin.Title)
-	assert.Equal(t, createdBin.CreatedAt.UTC(), *bin.CreatedAt)
+	assert.Equal(t, createdBin.CreatedAt.Unix(), bin.CreatedAt.Unix())
+	assert.NotEqual(t, updatedTs.UTC(), bin.UpdatedAt.UTC())
 
 	testPostgres.Destroy(accountID)
 }
 
-func ShouldGetBin(t *testing.T) {
+func TestGetBin(t *testing.T) {
+	testPostgresSetup()
+	defer testPostgresTearDown()
+
 	accountID := uuid.New().String()
 	createdBin := testCreateBin(accountID)
 
@@ -101,7 +111,10 @@ func ShouldGetBin(t *testing.T) {
 	testPostgres.Destroy(accountID)
 }
 
-func ShouldDeleteBin(t *testing.T) {
+func TestDeleteBin(t *testing.T) {
+	testPostgresSetup()
+	defer testPostgresTearDown()
+
 	accountID := uuid.New().String()
 	createdBin := testCreateBin(accountID)
 
@@ -115,7 +128,10 @@ func ShouldDeleteBin(t *testing.T) {
 	testPostgres.Destroy(accountID)
 }
 
-func ShouldDestroyBins(t *testing.T) {
+func TestDestroyBins(t *testing.T) {
+	testPostgresSetup()
+	defer testPostgresTearDown()
+
 	accountID := uuid.New().String()
 
 	var bins []*models.Bin
@@ -132,7 +148,10 @@ func ShouldDestroyBins(t *testing.T) {
 	}
 }
 
-func ShouldGetAllBins(t *testing.T) {
+func TestGetAllBins(t *testing.T) {
+	testPostgresSetup()
+	defer testPostgresTearDown()
+
 	accountID := uuid.New().String()
 
 	var bins []*models.Bin
@@ -162,7 +181,10 @@ func ShouldGetAllBins(t *testing.T) {
 	testPostgres.Destroy(accountID)
 }
 
-func ShouldGetErrors(t *testing.T) {
+func TestGetErrors(t *testing.T) {
+	testPostgresSetup()
+	defer testPostgresTearDown()
+
 	binID := uuid.New().String()
 	accountID := uuid.New().String()
 
