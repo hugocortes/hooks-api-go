@@ -94,7 +94,7 @@ func TestCacheInvalidation(t *testing.T) {
 	mockDB.On("Get", accountID, bin.ID).Return(&bin, nil).Run(func(args mock.Arguments) {
 		rawQueryCount++
 	})
-	mockDB.On("Update", accountID, bin.ID, &bin).Return(nil).Run(func(args mock.Arguments) {
+	mockDB.On("Update", accountID, bin.ID, &bin).Return(1, nil).Run(func(args mock.Arguments) {
 		updated = true
 	})
 

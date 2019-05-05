@@ -63,13 +63,12 @@ func TestCreateBin(t *testing.T) {
 	accountID := uuid.New().String()
 	title := fake.ProductName()
 	bin := &models.Bin{
-		Title:     title,
-		AccountID: accountID,
+		Title: title,
 	}
 
-	binID, err := testPostgres.Create(bin)
+	err := testPostgres.Create(accountID, bin)
 	assert.Nil(t, err)
-	assert.NotNil(t, binID, "BinID was not returned")
+	assert.NotNil(t, bin.ID, "BinID was not set")
 
 	testPostgres.Destroy(accountID)
 }
@@ -82,7 +81,7 @@ func TestUpdateBin(t *testing.T) {
 	createdBin := testCreateBin(accountID)
 	updatedTs := createdBin.UpdatedAt
 
-	time.Sleep(2 * time.Second)
+	time.Sleep(1 * time.Second)
 
 	createdBin.Title = "Updated Name"
 	testPostgres.Update(accountID, createdBin.ID, createdBin)
@@ -118,11 +117,11 @@ func TestDeleteBin(t *testing.T) {
 	accountID := uuid.New().String()
 	createdBin := testCreateBin(accountID)
 
-	err := testPostgres.Delete(accountID, createdBin.ID)
+	affected, err := testPostgres.Delete(accountID, createdBin.ID)
 	assert.Nil(t, err)
+	assert.Equal(t, 1, affected, "No entry was deleted")
 
 	bin, err := testPostgres.Get(accountID, createdBin.ID)
-	assert.NotNil(t, err, "Expected a not found error")
 	assert.Nil(t, bin)
 
 	testPostgres.Destroy(accountID)
@@ -143,8 +142,8 @@ func TestDestroyBins(t *testing.T) {
 	testPostgres.Destroy(accountID)
 	for i := 0; i < 10; i++ {
 		bin, err := testPostgres.Get(accountID, bins[i].ID)
-		assert.NotNil(t, err, "Expected not found error")
-		assert.Nil(t, bin)
+		assert.Nil(t, err, "Expected nil err")
+		assert.Nil(t, bin, "Expected nil bin")
 	}
 }
 
@@ -192,26 +191,24 @@ func TestGetErrors(t *testing.T) {
 	var err error
 
 	bin, err = testPostgres.Get(accountID, binID)
-	assert.NotNil(t, err, "Expected an error")
-	assert.Nil(t, bin, "Expected nil")
+	assert.Nil(t, err, "Expected nil err")
+	assert.Nil(t, bin, "Expected nil bin")
 
-	err = testPostgres.Update(accountID, binID, &models.Bin{})
-	assert.NotNil(t, err, "Expected an error")
+	affected, err := testPostgres.Update(accountID, binID, &models.Bin{})
+	assert.Equal(t, 0, affected, "Expected no entry")
 
-	err = testPostgres.Delete(accountID, binID)
-	assert.NotNil(t, err, "Expected an error")
+	affected, err = testPostgres.Delete(accountID, binID)
+	assert.Equal(t, 0, affected, "Expected no entry")
 
-	err = testPostgres.Destroy(accountID)
-	assert.NotNil(t, err, "Expected an error")
+	affected, err = testPostgres.Destroy(accountID)
+	assert.Equal(t, 0, affected, "Expected no entry")
 }
 
 func testCreateBin(accountID string) *models.Bin {
 	title := fake.ProductName()
 	bin := &models.Bin{
-		Title:     title,
-		AccountID: accountID,
+		Title: title,
 	}
-	binID, _ := testPostgres.Create(bin)
-	bin.ID = binID
+	testPostgres.Create(accountID, bin)
 	return bin
 }

@@ -33,31 +33,45 @@ func (_m *Handler) Create(bin *models.Bin) (string, error) {
 }
 
 // Delete provides a mock function with given fields: accountID, ID
-func (_m *Handler) Delete(accountID string, ID string) error {
+func (_m *Handler) Delete(accountID string, ID string) (int, error) {
 	ret := _m.Called(accountID, ID)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+	var r0 int
+	if rf, ok := ret.Get(0).(func(string, string) int); ok {
 		r0 = rf(accountID, ID)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int)
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(accountID, ID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // Destroy provides a mock function with given fields: accountID
-func (_m *Handler) Destroy(accountID string) error {
+func (_m *Handler) Destroy(accountID string) (int, error) {
 	ret := _m.Called(accountID)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
+	var r0 int
+	if rf, ok := ret.Get(0).(func(string) int); ok {
 		r0 = rf(accountID)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int)
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(accountID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // Get provides a mock function with given fields: accountID, ID
@@ -107,15 +121,22 @@ func (_m *Handler) GetAll(accountID string, opts *hooks_apimodels.QueryOpts) ([]
 }
 
 // Update provides a mock function with given fields: accountID, ID, bin
-func (_m *Handler) Update(accountID string, ID string, bin *models.Bin) error {
+func (_m *Handler) Update(accountID string, ID string, bin *models.Bin) (int, error) {
 	ret := _m.Called(accountID, ID, bin)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, *models.Bin) error); ok {
+	var r0 int
+	if rf, ok := ret.Get(0).(func(string, string, *models.Bin) int); ok {
 		r0 = rf(accountID, ID, bin)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int)
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, *models.Bin) error); ok {
+		r1 = rf(accountID, ID, bin)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }

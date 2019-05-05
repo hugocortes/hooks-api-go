@@ -11,20 +11,34 @@ type DB struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: bin
-func (_m *DB) Create(bin *models.Bin) (string, error) {
-	ret := _m.Called(bin)
+// Create provides a mock function with given fields: accountID, bin
+func (_m *DB) Create(accountID string, bin *models.Bin) error {
+	ret := _m.Called(accountID, bin)
 
-	var r0 string
-	if rf, ok := ret.Get(0).(func(*models.Bin) string); ok {
-		r0 = rf(bin)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, *models.Bin) error); ok {
+		r0 = rf(accountID, bin)
 	} else {
-		r0 = ret.Get(0).(string)
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Delete provides a mock function with given fields: accountID, ID
+func (_m *DB) Delete(accountID string, ID string) (int, error) {
+	ret := _m.Called(accountID, ID)
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func(string, string) int); ok {
+		r0 = rf(accountID, ID)
+	} else {
+		r0 = ret.Get(0).(int)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*models.Bin) error); ok {
-		r1 = rf(bin)
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(accountID, ID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -32,32 +46,25 @@ func (_m *DB) Create(bin *models.Bin) (string, error) {
 	return r0, r1
 }
 
-// Delete provides a mock function with given fields: accountID, ID
-func (_m *DB) Delete(accountID string, ID string) error {
-	ret := _m.Called(accountID, ID)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(accountID, ID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // Destroy provides a mock function with given fields: accountID
-func (_m *DB) Destroy(accountID string) error {
+func (_m *DB) Destroy(accountID string) (int, error) {
 	ret := _m.Called(accountID)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
+	var r0 int
+	if rf, ok := ret.Get(0).(func(string) int); ok {
 		r0 = rf(accountID)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int)
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(accountID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // Get provides a mock function with given fields: accountID, ID
@@ -107,15 +114,22 @@ func (_m *DB) GetAll(accountID string, opts *hooks_apimodels.QueryOpts) ([]*mode
 }
 
 // Update provides a mock function with given fields: accountID, ID, bin
-func (_m *DB) Update(accountID string, ID string, bin *models.Bin) error {
+func (_m *DB) Update(accountID string, ID string, bin *models.Bin) (int, error) {
 	ret := _m.Called(accountID, ID, bin)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, *models.Bin) error); ok {
+	var r0 int
+	if rf, ok := ret.Get(0).(func(string, string, *models.Bin) int); ok {
 		r0 = rf(accountID, ID, bin)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int)
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, *models.Bin) error); ok {
+		r1 = rf(accountID, ID, bin)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }

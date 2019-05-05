@@ -14,8 +14,8 @@ type Repository struct {
 type DB interface {
 	GetAll(accountID string, opts *gModels.QueryOpts) ([]*models.Bin, error)
 	Get(accountID string, ID string) (*models.Bin, error)
-	Create(bin *models.Bin) (string, error)
-	Update(accountID string, ID string, bin *models.Bin) error
-	Delete(accountID string, ID string) error
-	Destroy(accountID string) error
+	Create(accountID string, bin *models.Bin) error
+	Update(accountID string, ID string, bin *models.Bin) (int, error)
+	Delete(accountID string, ID string) (int, error)
+	Destroy(accountID string) (int, error)
 }

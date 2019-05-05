@@ -54,25 +54,25 @@ func (r *CacheRepo) Get(accountID string, ID string) (*models.Bin, error) {
 }
 
 // Create ...
-func (r *CacheRepo) Create(bin *models.Bin) (string, error) {
-	return r.DB.Create(bin)
+func (r *CacheRepo) Create(accountID string, bin *models.Bin) error {
+	return r.DB.Create(accountID, bin)
 }
 
 // Update ...
-func (r *CacheRepo) Update(accountID string, ID string, bin *models.Bin) error {
+func (r *CacheRepo) Update(accountID string, ID string, bin *models.Bin) (int, error) {
 	r.Cache.Del(cache.GenKey("Get", accountID, ID))
 
 	return r.DB.Update(accountID, ID, bin)
 }
 
 // Delete ...
-func (r *CacheRepo) Delete(accountID string, ID string) error {
+func (r *CacheRepo) Delete(accountID string, ID string) (int, error) {
 	r.Cache.Del(cache.GenKey("Get", accountID, ID))
 
 	return r.DB.Delete(accountID, ID)
 }
 
 // Destroy ...
-func (r *CacheRepo) Destroy(accountID string) error {
+func (r *CacheRepo) Destroy(accountID string) (int, error) {
 	return r.DB.Destroy(accountID)
 }
